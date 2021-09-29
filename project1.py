@@ -233,7 +233,6 @@ def classify(feature_matrix, theta, theta_0):
     Args:
         feature_matrix - A numpy matrix describing the given data. Each row
             represents a single data point.
-                theta - A numpy array describing the linear classifier.
         theta - A numpy array describing the linear classifier.
         theta_0 - A real valued number representing the offset parameter.
 
@@ -242,8 +241,14 @@ def classify(feature_matrix, theta, theta_0):
     given theta and theta_0. If a prediction is GREATER THAN zero, it should
     be considered a positive classification.
     """
-    # Your code here
-    raise NotImplementedError
+    predictions = np.array([])
+    
+    for i in range(feature_matrix.shape[0]):
+        if (np.dot(feature_matrix[i], theta) + theta_0) > 0:
+            predictions = np.append(predictions, 1)
+        else:
+            predictions = np.append(predictions, -1)
+    return predictions
 
 
 def classifier_accuracy(
@@ -278,8 +283,9 @@ def classifier_accuracy(
     trained classifier on the training data and the second element is the
     accuracy of the trained classifier on the validation data.
     """
-    # Your code here
-    raise NotImplementedError
+    theta, theta_0 = classifier(train_feature_matrix, train_labels, **kwargs)
+    return (accuracy(classify(train_feature_matrix, theta, theta_0), train_labels),
+            accuracy(classify(val_feature_matrix, theta, theta_0), val_labels))
 
 
 def extract_words(input_string):
@@ -302,10 +308,14 @@ def bag_of_words(texts):
 
     Feel free to change this code as guided by Problem 9
     """
-    # Your code here
+    stopWords = set([])
+    with open(r'C:\Users\marti\Projects\6.86x\resources_sentiment_analysis\sentiment_analysis\stopwords.txt', mode= 'r', encoding='latin1') as f:
+        for line in f:
+            stopWords.add(line.replace('\n', ''))
+    
     dictionary = {} # maps word to unique index
     for text in texts:
-        word_list = extract_words(text)
+        word_list = set(extract_words(text)).difference(stopWords)
         for word in word_list:
             if word not in dictionary:
                 dictionary[word] = len(dictionary)
@@ -319,10 +329,7 @@ def extract_bow_feature_vectors(reviews, dictionary):
     Returns the bag-of-words feature matrix representation of the data.
     The returned matrix is of shape (n, m), where n is the number of reviews
     and m the total number of entries in the dictionary.
-
-    Feel free to change this code as guided by Problem 9
     """
-    # Your code here
 
     num_reviews = len(reviews)
     feature_matrix = np.zeros([num_reviews, len(dictionary)])
@@ -331,7 +338,7 @@ def extract_bow_feature_vectors(reviews, dictionary):
         word_list = extract_words(text)
         for word in word_list:
             if word in dictionary:
-                feature_matrix[i, dictionary[word]] = 1
+                feature_matrix[i, dictionary[word]] += 1
     return feature_matrix
 
 
