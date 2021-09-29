@@ -10,7 +10,7 @@ def get_order(n_samples):
             line = fp.readline()
             return list(map(int, line.split(',')))
     except FileNotFoundError:
-        random.seed(1)
+        random.seed(0)
         indices = list(range(n_samples))
         random.shuffle(indices)
         return indices
@@ -180,8 +180,14 @@ def pegasos_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    # Your code here
-    raise NotImplementedError
+
+    if label*(np.dot(feature_vector, current_theta) + current_theta_0) <= 1:
+        current_theta = (1 - eta * L) * current_theta + eta * label * feature_vector
+        current_theta_0 += label*eta
+    else:
+        current_theta = (1 - eta * L) * current_theta
+    
+    return (current_theta, current_theta_0)
 
 
 def pegasos(feature_matrix, labels, T, L):
@@ -189,13 +195,6 @@ def pegasos(feature_matrix, labels, T, L):
     Runs the Pegasos algorithm on a given set of data. Runs T
     iterations through the data set, there is no need to worry about
     stopping early.
-
-    For each update, set learning rate = 1/sqrt(t),
-    where t is a counter for the number of updates performed so far (between 1
-    and nT inclusive).
-
-    NOTE: Please use the previously implemented functions when applicable.
-    Do not copy paste code from previous parts.
 
     Args:
         feature_matrix - A numpy matrix describing the given data. Each row
@@ -213,10 +212,17 @@ def pegasos(feature_matrix, labels, T, L):
     number with the value of the theta_0, the offset classification
     parameter, found after T iterations through the feature matrix.
     """
-    # Your code here
-    raise NotImplementedError
+    theta = np.array([0] * feature_matrix.shape[1])
+    theta_0 = 0 
+    steps = 1
 
-# Part II
+    for t in range(T):
+        for i in get_order(feature_matrix.shape[0]):
+            theta, theta_0 = pegasos_single_step_update(feature_matrix[i], labels[i], L, 1 / np.sqrt(steps), theta, theta_0)
+            steps += 1
+    
+    return (theta, theta_0)
+
 
 
 def classify(feature_matrix, theta, theta_0):
